@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # DM Public School Website
 
 Production-ready school website built with **Next.js App Router + Tailwind CSS**.
@@ -145,3 +146,7 @@ Edit `lib/site-config.ts`:
 
 - Local JSON writes are suitable for demo/local usage. For persistent production content, connect Firebase/MongoDB/CMS.
 - Placeholder PDF files are included in `public/downloads/` and should be replaced with final files.
+=======
+# Cica-Website
+Production Ready Institute Website
+>>>>>>> 300d13948e8f116bb1658dec5cabb1f5761ecb7e
