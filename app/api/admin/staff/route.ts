@@ -67,7 +67,6 @@ export async function POST(request: NextRequest) {
       subject: teacher.subject,
       bio: teacher.description,
       photo: teacher.imageUrl,
-      publicId: teacher.publicId,
       pdfUrl: teacher.pdfUrl,
       pdfTitle: teacher.pdfTitle
     };

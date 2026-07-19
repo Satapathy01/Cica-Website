@@ -32,9 +32,13 @@ export async function POST(request: NextRequest) {
 
   const slides = await readJsonFile<HeroSlide[]>("hero.json", []);
   const slide: HeroSlide = {
-    id: `hero-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    ...parsed.data
-  };
+  id: crypto.randomUUID(),
+  title: parsed.data.title,
+  imageUrl: parsed.data.imageUrl,
+  altText: parsed.data.altText,
+  displayOrder: parsed.data.displayOrder,
+  isActive: parsed.data.isActive
+};
 
   slides.unshift(slide);
   await writeJsonFile("hero.json", slides);

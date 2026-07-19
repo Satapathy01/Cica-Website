@@ -43,8 +43,8 @@ export function Hero({ initialSlides }: HeroProps) {
       {slides.map((slide, index) => (
         <Image
           key={slide.id}
-          src={slide.url}
-          alt={slide.alt}
+          src={slide.imageUrl}
+          alt={slide.altText}
           fill
           priority={index === 0}
           className={`object-cover transition-all duration-1000 ${
@@ -110,7 +110,7 @@ export function Hero({ initialSlides }: HeroProps) {
 
         {/* SLIDE TEXT */}
         <p className="mt-4 text-center text-xs text-slate-200/80">
-          {current?.alt}
+          {current?.altText}
         </p>
       </div>
     </section>

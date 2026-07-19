@@ -1,37 +1,82 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AlertTriangle, Bell, Calendar, SunMedium } from "lucide-react";
+import {
+  AlertTriangle,
+  Bell,
+  Calendar,
+  BookOpen,
+  Megaphone
+} from "lucide-react";
 import { SectionHeading } from "@/components/section-heading";
 import { NoticeItem, NoticeType } from "@/lib/types";
 import { formatDate } from "@/lib/format";
 
 const noticeTypeClasses: Record<NoticeType, string> = {
-  daily: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/25 dark:text-blue-200 dark:border-blue-800",
-  holiday: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-200 dark:border-emerald-800",
-  alert: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/20 dark:text-rose-200 dark:border-rose-800"
+  general:
+    "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/25 dark:text-blue-200 dark:border-blue-800",
+
+  holiday:
+    "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-200 dark:border-emerald-800",
+
+  exam:
+    "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-800",
+
+  admission:
+    "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/20 dark:text-rose-200 dark:border-rose-800"
 };
 
-const noticeTabs: Array<{ key: "all" | NoticeType; label: string }> = [
-  { key: "all", label: "All" },
-  { key: "daily", label: "Daily" },
-  { key: "holiday", label: "Holidays" },
-  { key: "alert", label: "Alerts" }
+const noticeTabs: Array<{
+  key: "all" | NoticeType;
+  label: string;
+}> = [
+  {
+    key: "all",
+    label: "All"
+  },
+  {
+    key: "general",
+    label: "General"
+  },
+  {
+    key: "holiday",
+    label: "Holidays"
+  },
+  {
+    key: "exam",
+    label: "Exams"
+  },
+  {
+    key: "admission",
+    label: "Admissions"
+  }
 ];
 
 interface NoticeBoardProps {
   initialNotices: NoticeItem[];
 }
 
-export function NoticeBoard({ initialNotices }: NoticeBoardProps) {
-  const [tab, setTab] = useState<"all" | NoticeType>("all");
+export function NoticeBoard({
+  initialNotices
+}: NoticeBoardProps) {
+  const [tab, setTab] = useState<
+    "all" | NoticeType
+  >("all");
 
   const filtered = useMemo(() => {
-    const sorted = [...initialNotices].sort((a, b) => +new Date(b.date) - +new Date(a.date));
+    const sorted = [...initialNotices].sort(
+      (a, b) =>
+        +new Date(b.date) -
+        +new Date(a.date)
+    );
+
     if (tab === "all") {
       return sorted;
     }
-    return sorted.filter((notice) => notice.type === tab);
+
+    return sorted.filter(
+      (notice) => notice.type === tab
+    );
   }, [initialNotices, tab]);
 
   return (
@@ -42,15 +87,15 @@ export function NoticeBoard({ initialNotices }: NoticeBoardProps) {
     >
       <SectionHeading
         title="Notice Board"
-        subtitle="Daily Updates, Holidays & Important Alerts"
+        subtitle="General Updates, Holidays, Exams & Admissions"
         headingId="notices-heading"
       />
 
       <div className="mt-6 flex flex-wrap gap-2">
         {noticeTabs.map((item) => (
           <button
-            type="button"
             key={item.key}
+            type="button"
             onClick={() => setTab(item.key)}
             className={`min-h-[44px] rounded-full px-4 py-2 text-sm font-medium transition ${
               tab === item.key
@@ -78,22 +123,32 @@ export function NoticeBoard({ initialNotices }: NoticeBoardProps) {
                 <span
                   className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.15em] ${noticeTypeClasses[notice.type]}`}
                 >
-                  {notice.type === "daily" ? (
-                    <SunMedium className="h-3.5 w-3.5" />
-                  ) : notice.type === "holiday" ? (
+                  {notice.type ===
+                  "general" ? (
+                    <Bell className="h-3.5 w-3.5" />
+                  ) : notice.type ===
+                    "holiday" ? (
                     <Calendar className="h-3.5 w-3.5" />
+                  ) : notice.type ===
+                    "exam" ? (
+                    <BookOpen className="h-3.5 w-3.5" />
                   ) : (
-                    <AlertTriangle className="h-3.5 w-3.5" />
+                    <Megaphone className="h-3.5 w-3.5" />
                   )}
+
                   {notice.type}
                 </span>
+
                 <span className="inline-flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300">
-                  <Bell className="h-3.5 w-3.5" /> {formatDate(notice.date)}
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  {formatDate(notice.date)}
                 </span>
               </div>
+
               <h3 className="mt-4 break-words text-lg font-semibold text-slate-900 dark:text-slate-100">
                 {notice.title}
               </h3>
+
               <p className="mt-2 break-all text-sm text-slate-600 sm:break-words dark:text-slate-300">
                 {notice.content}
               </p>

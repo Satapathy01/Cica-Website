@@ -2,13 +2,10 @@ import {
   ContactMessage,
   ContactSettings,
   DocumentItem,
-  EventItem,
   GalleryDisplayConfig,
   GalleryImage,
   HeroSlide,
-  NavConfig,
-  NoticeItem,
-  StaffMember
+  NavConfig
 } from "@/lib/types";
 import { readJsonFile } from "@/lib/file-store";
 import { fallbackHeroSlides, navigationLinks } from "@/lib/constants";
@@ -40,21 +37,35 @@ export async function getHeroSlides() {
   return readJsonFile<HeroSlide[]>("hero.json", fallbackHeroSlides);
 }
 
-export async function getHeroAdmissionsText() {
+export async function getHeroContent() {
   try {
-    const { getDefaultAdmissionsText, getHeroContent } = await import(
+    const { getHeroContent } = await import(
       "@/lib/hero-content-service"
     );
-    const content = await getHeroContent();
-    const nextText = content.admissionsText.trim();
-    return nextText.length > 0 ? nextText : getDefaultAdmissionsText();
+
+    return await getHeroContent();
   } catch {
-    try {
-      const { getDefaultAdmissionsText } = await import("@/lib/hero-content-service");
-      return getDefaultAdmissionsText();
-    } catch {
-      return "";
-    }
+    return {
+      id: 1,
+
+      title: "Welcome to CICA Institute",
+
+      subtitle: "Empowering Future Professionals",
+
+      primaryButtonText: "Apply Now",
+
+      primaryButtonLink: "/apply",
+
+      secondaryButtonText: "Explore Courses",
+
+      secondaryButtonLink: "/courses",
+
+      autoplay: true,
+
+      autoplaySpeed: 5000,
+
+      overlayOpacity: 0.4
+    };
   }
 }
 
@@ -62,6 +73,7 @@ export async function getPublicGalleryImages() {
   try {
     const { listGalleryImages } = await import("@/lib/gallery-service");
     const images = await listGalleryImages();
+
     if (images.length > 0) {
       return images;
     }
@@ -80,10 +92,15 @@ export async function getPublicGalleryImages() {
 
 export async function getGalleryDisplayConfig(): Promise<GalleryDisplayConfig> {
   try {
-    const { getGalleryDisplayConfig } = await import("@/lib/gallery-display-service");
+    const { getGalleryDisplayConfig } = await import(
+      "@/lib/gallery-display-service"
+    );
     return await getGalleryDisplayConfig();
   } catch {
-    const fallback: GalleryDisplayConfig = { mode: "grid" };
+    const fallback: GalleryDisplayConfig = {
+      mode: "grid"
+    };
+
     const config = await readJsonFile<GalleryDisplayConfig>(
       "gallery-display.json",
       fallback
@@ -115,12 +132,32 @@ export async function getStaffMembers() {
 
 export async function getContactSettings() {
   const fallback: ContactSettings = {
-    email: siteConfig.contact.email,
+    schoolName: siteConfig.name,
+    address: siteConfig.contact.address,
+    city: "Puri",
+    state: "Odisha",
+    postalCode: "752001",
+
     phone: siteConfig.contact.phone,
-    address: siteConfig.contact.address
+    email: siteConfig.contact.email,
+
+    alternatePhone: "",
+    website: "",
+    facebook: "",
+    instagram: "",
+    youtube: "",
+    whatsapp: "",
+    googleMapEmbed: "",
+    officeHours: "",
+
+    latitude: undefined,
+    longitude: undefined
   };
 
-  return readJsonFile<ContactSettings>("contact-settings.json", fallback);
+  return readJsonFile<ContactSettings>(
+    "contact-settings.json",
+    fallback
+  );
 }
 
 export async function getContactMessages() {
@@ -134,5 +171,8 @@ export async function getNavConfig() {
     return acc;
   }, {} as NavConfig);
 
-  return readJsonFile<NavConfig>("nav-config.json", defaultConfig);
+  return readJsonFile<NavConfig>(
+    "nav-config.json",
+    defaultConfig
+  );
 }

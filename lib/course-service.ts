@@ -1,8 +1,7 @@
 import {
-  deleteImageFromCloudinary,
-  getOptimizedCloudinaryImageUrl,
-  uploadImageToCloudinary,
-} from "@/lib/cloudinary";
+  saveFileLocally,
+  deleteLocalFile,
+} from "@/lib/local-storage";
 
 import {
   readJsonFile,
@@ -31,19 +30,6 @@ interface TeacherUpdateInput extends TeacherInput {
 function normalizeText(value:string){
   return value.trim();
 }
-
-
-
-function getTeachersFolder(){
-
- const baseFolder =
- process.env.CLOUDINARY_FOLDER ??
- "cica-institute";
-
- return `${baseFolder}/teachers`;
-
-}
-
 
 
 async function getTeachers(){
@@ -147,105 +133,58 @@ export async function listTeachers()
 
 
 
-export async function listTeacherStaffMembers()
-:Promise<StaffMember[]>{
+export async function listTeacherStaffMembers(): Promise<StaffMember[]> {
+  const teachers = await getTeachers();
 
- const teachers =
- await getTeachers();
+  return teachers.map((teacher) => ({
+    id: teacher.id,
 
+    name: teacher.name,
 
- return teachers.map(
-  teacher=>({
+    subject: teacher.subject,
 
-   id:teacher.id,
+    bio: teacher.description,
 
-   name:teacher.name,
+    photo: teacher.imageUrl,
 
-   subject:
-   teacher.subject,
+    pdfUrl: teacher.pdfUrl,
 
-   bio:
-   teacher.description,
-
-   photo:
-   teacher.imageUrl,
-
-   publicId:
-   teacher.publicId,
-
-   pdfUrl:
-   teacher.pdfUrl,
-
-   pdfTitle:
-   teacher.pdfTitle
-
-  })
- );
-
+    pdfTitle: teacher.pdfTitle,
+  }));
 }
 
 
 
 
 export async function createTeacher(
- input:
- TeacherInput &
- {imageFile:File}
-){
+  input: TeacherInput & { imageFile: File }
+) {
+  const uploaded = await saveFileLocally(
+    input.imageFile,
+    "teachers"
+  );
 
- const upload =
- await uploadImageToCloudinary(
-  input.imageFile,
-  {
-   title:input.name,
-   category:"teacher",
-   folder:getTeachersFolder()
-  }
- );
+  const teacher: Teacher = {
+    id: crypto.randomUUID(),
 
+    name: normalizeText(input.name),
 
- const teacher:Teacher={
+    subject: normalizeText(input.subject),
 
-  id:
-  crypto.randomUUID(),
+    description: normalizeText(input.description),
 
-  name:
-  normalizeText(input.name),
+    imageUrl: uploaded.publicPath,
+  };
 
-  subject:
-  normalizeText(input.subject),
+  const teachers = await getTeachers();
 
-  description:
-  normalizeText(input.description),
+  await saveTeachers([
+    teacher,
+    ...teachers,
+  ]);
 
-  imageUrl:
-  getOptimizedCloudinaryImageUrl(
-   upload.publicId
-  ),
-
-  publicId:
-  upload.publicId
-
- };
-
-
- const teachers =
- await getTeachers();
-
-
- await saveTeachers(
-  [
-   teacher,
-   ...teachers
-  ]
- );
-
-
- return teacher;
-
+  return teacher;
 }
-
-
 
 
 export async function updateTeacher(
@@ -270,63 +209,28 @@ export async function updateTeacher(
  let imageUrl =
  existing.imageUrl;
 
+ if (input.imageFile) {
+  await deleteLocalFile(existing.imageUrl);
 
- let publicId =
- existing.publicId;
-
-
-
- if(input.imageFile){
-
-  const uploaded =
-  await uploadImageToCloudinary(
-   input.imageFile,
-   {
-    title:input.name,
-    category:"teacher",
-    folder:getTeachersFolder()
-   }
+  const uploaded = await saveFileLocally(
+    input.imageFile,
+    "teachers"
   );
 
+  imageUrl = uploaded.publicPath;
+}
 
-  await deleteImageFromCloudinary(
-   existing.publicId
-  ).catch(()=>undefined);
-
-
-
-  imageUrl =
-  getOptimizedCloudinaryImageUrl(
-   uploaded.publicId
-  );
-
-
-  publicId =
-  uploaded.publicId;
-
- }
-
-
-
- const updated:Teacher={
-
+ const updated: Teacher = {
   ...existing,
 
-  name:
-  normalizeText(input.name),
+  name: normalizeText(input.name),
 
-  subject:
-  normalizeText(input.subject),
+  subject: normalizeText(input.subject),
 
-  description:
-  normalizeText(input.description),
+  description: normalizeText(input.description),
 
   imageUrl,
-
-  publicId
-
- };
-
+};
 
  await saveTeachers(
 
@@ -349,37 +253,27 @@ export async function updateTeacher(
 
 
 export async function deleteTeacher(
- id:string
-){
+  id: string
+) {
+  const teachers = await getTeachers();
 
- const teachers =
- await getTeachers();
+  const existing = teachers.find(
+    t => t.id === id
+  );
 
+  if (!existing) {
+    return null;
+  }
 
- const existing =
- teachers.find(
-  t=>t.id===id
- );
+  await deleteLocalFile(
+    existing.imageUrl
+  );
 
+  await saveTeachers(
+    teachers.filter(
+      t => t.id !== id
+    )
+  );
 
- if(!existing)
- return null;
-
-
-
- await deleteImageFromCloudinary(
-  existing.publicId
- ).catch(()=>undefined);
-
-
-
- await saveTeachers(
-  teachers.filter(
-   t=>t.id!==id
-  )
- );
-
-
- return existing;
-
+  return existing;
 }

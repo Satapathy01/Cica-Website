@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { fallbackHeroSlides } from "@/lib/constants";
 import { isAdminAuthorized } from "@/lib/admin-auth";
 import {
-  getDefaultAdmissionsText,
   getHeroContent,
-  updateHeroAdmissionsText
+  updateHeroContent
 } from "@/lib/hero-content-service";
 import { getDynamicHero } from "@/lib/media-provider";
 import { heroContentSchema } from "@/lib/validation";
@@ -20,40 +19,48 @@ export async function GET() {
 
     return NextResponse.json({
       slides,
-      admissionsText: heroContent.admissionsText || getDefaultAdmissionsText()
+      heroContent
     });
   } catch {
     const slides = await getDynamicHero(fallbackHeroSlides);
+
     return NextResponse.json({
       slides,
-      admissionsText: getDefaultAdmissionsText()
+      heroContent: await getHeroContent()
     });
   }
 }
 
 export async function PUT(request: NextRequest) {
   if (!(await isAdminAuthorized(request))) {
-    return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
+    return NextResponse.json(
+      { message: "Unauthorized." },
+      { status: 401 }
+    );
   }
 
   try {
     const payload = await request.json();
-    const parsed = heroContentSchema.safeParse(payload);
+
+    const parsed =
+      heroContentSchema.safeParse(payload);
 
     if (!parsed.success) {
       return NextResponse.json(
         {
           message:
-            parsed.error.issues[0]?.message ?? "Invalid hero content payload."
+            parsed.error.issues[0]?.message ??
+            "Invalid hero content payload."
         },
         { status: 400 }
       );
     }
 
-    const content = await updateHeroAdmissionsText(parsed.data.admissionsText);
+    const content =
+      await updateHeroContent(parsed.data);
+
     return NextResponse.json({
-      message: "Hero admissions text updated.",
-      admissionsText: content.admissionsText,
+      message: "Hero content updated.",
       heroContent: content
     });
   } catch (error) {
@@ -62,7 +69,7 @@ export async function PUT(request: NextRequest) {
         message:
           error instanceof Error
             ? error.message
-            : "Unable to update hero admissions text."
+            : "Unable to update hero content."
       },
       { status: 500 }
     );

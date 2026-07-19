@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   LayoutDashboard,
   Bell,
+  Megaphone,
   BarChart3,
   GraduationCap,
   FileText,
@@ -15,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { AdminDashboard } from "@/components/admin/admin-dashboard";
+import { AdminAnnouncementManager } from "./admin-announcement-manager";
 import { AdminNotices } from "@/components/admin/admin-notices";
 import { AdminStatistics } from "@/components/admin/admin-statistics";
 import { AdminCourseManager } from "@/components/admin/admin-course-manager";
@@ -23,6 +25,7 @@ import { AdminSettings } from "@/components/admin/admin-settings";
 
 type Section =
   | "dashboard"
+  | "announcements"
   | "notices"
   | "statistics"
   | "courses"
@@ -38,7 +41,6 @@ interface ConfirmState {
   action: () => Promise<void> | void;
 }
 
-
 interface SidebarItem {
   key: Section;
   label: string;
@@ -50,6 +52,11 @@ const sidebarItems: SidebarItem[] = [
     key: "dashboard",
     label: "Dashboard",
     icon: LayoutDashboard
+  },
+  {
+    key: "announcements",
+    label: "Announcements",
+    icon: Megaphone
   },
   {
     key: "notices",
@@ -91,78 +98,78 @@ export function AdminPanel() {
   const [pinError, setPinError] = useState("");
 
   const [confirmState, setConfirmState] =
-  useState<ConfirmState | null>(null);
+    useState<ConfirmState | null>(null);
 
   const [confirmLoading, setConfirmLoading] =
-  useState(false);
+    useState(false);
 
   const [toasts, setToasts] = useState<
-  {
-    id: number;
-    type: ToastType;
-    message: string;
-  }[]
->([]);
+    {
+      id: number;
+      type: ToastType;
+      message: string;
+    }[]
+  >([]);
 
   const addToast = (
-  type: ToastType,
-  message: string
-) => {
-  const id = Date.now();
-
-  setToasts((current) => [
-    ...current,
-    {
-      id,
-      type,
-      message
-    }
-  ]);
-
-  setTimeout(() => {
-    setToasts((current) =>
-      current.filter((toast) => toast.id !== id)
-    );
-  }, 3000);
-}
-
-  const requestConfirm = (
-  next: ConfirmState
+    type: ToastType,
+    message: string
   ) => {
-  setConfirmState(next);
+    const id = Date.now();
+
+    setToasts((current) => [
+      ...current,
+      {
+        id,
+        type,
+        message
+      }
+    ]);
+
+    setTimeout(() => {
+      setToasts((current) =>
+        current.filter((toast) => toast.id !== id)
+      );
+    }, 3000);
   };
 
+  const requestConfirm = (
+    next: ConfirmState
+  ) => {
+    setConfirmState(next);
+  };
 
   const runConfirmAction = async () => {
-  if (!confirmState) return;
+    if (!confirmState) return;
 
-  setConfirmLoading(true);
+    setConfirmLoading(true);
 
-  try {
-    await confirmState.action();
-    setConfirmState(null);
-  } finally {
-    setConfirmLoading(false);
-  }
-};
-   const apiRequest = async <T,>(
-  url: string,
-  init?: RequestInit
-): Promise<T> => {
-  const response = await fetch(url, init);
+    try {
+      await confirmState.action();
+      setConfirmState(null);
+    } finally {
+      setConfirmLoading(false);
+    }
+  };
 
-  const payload = await response.json();
+  const apiRequest = async <T,>(
+    url: string,
+    init?: RequestInit
+  ): Promise<T> => {
+    const response = await fetch(url, init);
 
-  if (!response.ok) {
-    if (response.status === 401) {
-      setAuthenticated(false);
+    const payload = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        setAuthenticated(false);
+      }
+
+      throw new Error(payload.message ?? "Request failed.");
     }
 
-    throw new Error(payload.message ?? "Request failed.");
-  }
-
-  return payload;
-};
+    return payload;
+  };
 
   return (
     <div className="flex min-h-screen bg-slate-100">
@@ -227,18 +234,34 @@ export function AdminPanel() {
           </button>
 
           <h2 className="ml-4 text-xl font-semibold">
-            {sidebarItems.find(
-              (item) => item.key === activeSection
-            )?.label}
+            {
+              sidebarItems.find(
+                (item) => item.key === activeSection
+              )?.label
+            }
           </h2>
         </header>
 
         <main className="p-6">
-          {activeSection === "dashboard" && <AdminDashboard />}
+          {activeSection === "dashboard" && (
+            <AdminDashboard />
+          )}
 
-          {activeSection === "notices" && <AdminNotices />}
+          {activeSection === "announcements" && (
+            <AdminAnnouncementManager
+              apiRequest={apiRequest}
+              addToast={addToast}
+              requestConfirm={requestConfirm}
+            />
+          )}
 
-          {activeSection === "statistics" && <AdminStatistics />}
+          {activeSection === "notices" && (
+            <AdminNotices />
+          )}
+
+          {activeSection === "statistics" && (
+            <AdminStatistics />
+          )}
 
           {activeSection === "courses" && (
             <AdminCourseManager
@@ -256,7 +279,9 @@ export function AdminPanel() {
             />
           )}
 
-          {activeSection === "settings" && <AdminSettings />}
+          {activeSection === "settings" && (
+            <AdminSettings />
+          )}
         </main>
       </div>
     </div>

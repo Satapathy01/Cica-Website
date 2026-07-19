@@ -29,7 +29,7 @@ export function DownloadsSection({ items }: DownloadsSectionProps) {
           items.map((item) => (
             <a
               key={item.id}
-              href={item.publicUrl ?? item.fileUrl}
+              href={item.fileUrl}
               download
               target="_blank"
               rel="noopener noreferrer"
@@ -39,12 +39,21 @@ export function DownloadsSection({ items }: DownloadsSectionProps) {
                 <p className="break-words font-medium text-slate-900 dark:text-slate-100">
                   {item.title}
                 </p>
+
                 <p className="text-sm text-slate-600 dark:text-slate-300">
-                  Updated on {formatDate(item.date)}
+                  {item.description}
                 </p>
+
+                {item.updatedAt && (
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                Updated on {formatDate(item.updatedAt)}
+               </p>
+               )}
               </div>
+
               <span className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-brand-700 dark:text-brand-300">
-                <FileDown className="h-4 w-4" /> Download PDF
+                <FileDown className="h-4 w-4" />
+                Download PDF
               </span>
             </a>
           ))

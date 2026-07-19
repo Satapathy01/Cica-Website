@@ -32,7 +32,14 @@ export async function PUT(
     return NextResponse.json({ message: "Hero slide not found." }, { status: 404 });
   }
 
-  const updated: HeroSlide = { id, ...parsed.data };
+  const updated: HeroSlide = {
+  id,
+  title: parsed.data.title,
+  imageUrl: parsed.data.imageUrl,
+  altText: parsed.data.altText,
+  displayOrder: parsed.data.displayOrder,
+  isActive: parsed.data.isActive
+};
   slides[index] = updated;
   await writeJsonFile("hero.json", slides);
 

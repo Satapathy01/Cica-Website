@@ -8,43 +8,105 @@ import { siteConfig } from "@/lib/site-config";
 export const runtime = "nodejs";
 
 const fallbackSettings: ContactSettings = {
-  email: siteConfig.contact.email,
+  schoolName: siteConfig.name,
+
+  address: siteConfig.contact.address,
+
+  city: "Puri",
+
+  state: "Odisha",
+
+  postalCode: "752001",
+
   phone: siteConfig.contact.phone,
-  address: siteConfig.contact.address
+
+  alternatePhone: "",
+
+  email: siteConfig.contact.email,
+
+  website: "",
+
+  facebook: "",
+
+  instagram: "",
+
+  youtube: "",
+
+  whatsapp: "",
+
+  googleMapEmbed: "",
+
+  officeHours: "",
+
+  latitude: undefined,
+
+  longitude: undefined
 };
 
 export async function GET(request: NextRequest) {
   if (!(await isAdminAuthorized(request))) {
-    return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
+    return NextResponse.json(
+      { message: "Unauthorized." },
+      { status: 401 }
+    );
   }
 
   const [settings, messages] = await Promise.all([
-    readJsonFile<ContactSettings>("contact-settings.json", fallbackSettings),
-    readJsonFile<ContactMessage[]>("messages.json", [])
+    readJsonFile<ContactSettings>(
+      "contact-settings.json",
+      fallbackSettings
+    ),
+    readJsonFile<ContactMessage[]>(
+      "messages.json",
+      []
+    )
   ]);
 
   const sortedMessages = [...messages].sort(
-    (a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)
+    (a, b) =>
+      +new Date(b.createdAt) -
+      +new Date(a.createdAt)
   );
 
-  return NextResponse.json({ settings, messages: sortedMessages });
+  return NextResponse.json({
+    settings,
+    messages: sortedMessages
+  });
 }
 
 export async function PUT(request: NextRequest) {
   if (!(await isAdminAuthorized(request))) {
-    return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
+    return NextResponse.json(
+      { message: "Unauthorized." },
+      { status: 401 }
+    );
   }
 
   const payload = await request.json();
-  const parsed = contactSettingsSchema.safeParse(payload);
+
+  const parsed =
+    contactSettingsSchema.safeParse(
+      payload
+    );
 
   if (!parsed.success) {
     return NextResponse.json(
-      { message: parsed.error.issues[0]?.message ?? "Invalid contact settings payload." },
+      {
+        message:
+          parsed.error.issues[0]?.message ??
+          "Invalid contact settings payload."
+      },
       { status: 400 }
     );
   }
 
-  await writeJsonFile("contact-settings.json", parsed.data);
-  return NextResponse.json({ message: "Contact settings updated.", settings: parsed.data });
+  await writeJsonFile(
+    "contact-settings.json",
+    parsed.data
+  );
+
+  return NextResponse.json({
+    message: "Contact settings updated.",
+    settings: parsed.data
+  });
 }

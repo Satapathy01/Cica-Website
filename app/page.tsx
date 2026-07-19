@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { WhatsAppButton } from "@/components/whatsapp-button";
-import { AnnouncementBar } from "@/components/announcement-bar";
+import { AnnouncementBar } from "@/components/admin/announcement-bar";
 import { HeroSection } from "@/components/hero-section";
 import { NoticeBoard } from "@/components/notice-board";
 import { CounterSection } from "@/components/counter-section";

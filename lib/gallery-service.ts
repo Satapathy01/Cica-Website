@@ -1,7 +1,7 @@
 import {
-  deleteImageFromCloudinary,
-  uploadImageToCloudinary,
-} from "@/lib/cloudinary";
+  saveFileLocally,
+  deleteLocalFile,
+} from "@/lib/local-storage";
 
 import {
   readJsonFile,
@@ -10,17 +10,13 @@ import {
 
 import { GalleryImage } from "@/lib/types";
 
-
 const FILE = "gallery.json";
-
 
 interface GalleryCreateInput {
   imageUrl: string;
-  publicId: string;
   category: string;
   title: string;
 }
-
 
 interface UploadMeta {
   title?: string;
@@ -28,11 +24,9 @@ interface UploadMeta {
   category?: string;
 }
 
-
 function normalizeCategory(value?: string) {
   return value?.trim() || "Campus";
 }
-
 
 function normalizeTitle(
   value?: string,
@@ -41,274 +35,186 @@ function normalizeTitle(
   return value?.trim() || fallback;
 }
 
-
-
-async function getImages(){
-
+async function getImages() {
   return await readJsonFile<GalleryImage[]>(
     FILE,
     []
   );
-
 }
 
-
-
 async function saveImages(
-  images:GalleryImage[]
-){
-
+  images: GalleryImage[]
+) {
   await writeJsonFile(
     FILE,
     images
   );
-
 }
 
-
-
-export async function listGalleryImages(
-  category?:string
-){
-
-  const images =
-    await getImages();
-
-
-  if(category){
-
-    return images.filter(
-      img =>
-      img.category.toLowerCase()
-      ===
-      category.toLowerCase()
-    );
-
+function parseMeta(
+  metaRaw: FormDataEntryValue | null
+) {
+  if (typeof metaRaw !== "string") {
+    return [] as UploadMeta[];
   }
 
+  try {
+    const parsed = JSON.parse(metaRaw);
 
-  return images;
-
+    return Array.isArray(parsed)
+      ? parsed
+      : [];
+  } catch {
+    return [];
+  }
 }
 
+export async function listGalleryImages(
+  category?: string
+) {
+  const images = await getImages();
 
+  const sorted = [...images].sort(
+    (a, b) => a.displayOrder - b.displayOrder
+  );
 
+  if (category) {
+    return sorted.filter(
+      (img) =>
+        img.category.toLowerCase() ===
+        category.toLowerCase()
+    );
+  }
 
+  return sorted;
+}
 
 export async function createGalleryImages(
-  entries:GalleryCreateInput[]
-){
+  entries: GalleryCreateInput[]
+) {
+  const images = await getImages();
 
-  const images =
-    await getImages();
+  const created: GalleryImage[] =
+    entries.map((entry, index) => ({
+      id: crypto.randomUUID(),
 
+      title: entry.title,
 
-  const created:GalleryImage[] =
-    entries.map((entry,index)=>({
+      imageUrl: entry.imageUrl,
 
-      id:crypto.randomUUID(),
+      category: entry.category,
 
-      url:entry.imageUrl,
+      displayOrder: images.length + index + 1,
 
-      alt:entry.title,
-
-      title:entry.title,
-
-      category:entry.category,
-
-      publicId:entry.publicId,
-
-      sortOrder:
-      images.length + index
+      isActive: true,
 
     }));
 
-
-  const updated =
-    [
-      ...created,
-      ...images
-    ];
-
+  const updated = [
+    ...created,
+    ...images,
+  ];
 
   await saveImages(updated);
 
-
   return created;
-
 }
-
-
-
-
-function parseMeta(
- metaRaw:FormDataEntryValue | null
-){
-
- if(typeof metaRaw !== "string")
-    return [] as UploadMeta[];
-
-
- try{
-
-  const parsed =
-    JSON.parse(metaRaw);
-
-
-  return Array.isArray(parsed)
-    ? parsed
-    : [];
-
-
- }catch{
-
-  return [];
-
- }
-
-}
-
-
-
 
 export async function uploadGalleryImagesFromFormData(
- formData:FormData
-){
+  formData: FormData
+) {
+  const files = formData
+    .getAll("files")
+    .filter(
+      (entry): entry is File =>
+        entry instanceof File
+    );
 
- const files =
- formData
- .getAll("files")
- .filter(
-  (entry):entry is File =>
-  entry instanceof File
- );
+  if (files.length === 0) {
+    throw new Error(
+      "No image files provided"
+    );
+  }
 
-
- if(files.length===0){
-  throw new Error(
-    "No image files provided"
-  );
- }
-
-
- const meta =
- parseMeta(
-  formData.get("meta")
- );
-
-
- const entries:GalleryCreateInput[]=[];
-
-
- for(const [index,file] of files.entries()){
-
-
-  const fileMeta =
-  meta[index] ?? {};
-
-
-  const category =
-  normalizeCategory(
-    fileMeta.category
+  const meta = parseMeta(
+    formData.get("meta")
   );
 
+  const entries: GalleryCreateInput[] = [];
 
-  const title =
-  normalizeTitle(
-    fileMeta.title,
-    file.name
-  );
+  for (const [index, file] of files.entries()) {
+    const fileMeta =
+      meta[index] ?? {};
 
+    const category =
+      normalizeCategory(
+        fileMeta.category
+      );
 
+    const title =
+      normalizeTitle(
+        fileMeta.title,
+        file.name
+      );
 
-  const upload =
-  await uploadImageToCloudinary(
-    file,
-    {
-      category,
-      title
-    }
-  );
+    const upload = await saveFileLocally(
+  file,
+  "gallery"
+);
 
+entries.push({
+  imageUrl: upload.publicPath,
 
+  category,
 
-  entries.push({
-
-    imageUrl:
-    upload.secureUrl,
-
-    publicId:
-    upload.publicId,
-
-    category,
-
-    title
-
-  });
-
-
- }
-
-
- return createGalleryImages(entries);
-
+  title,
+});
+  
 }
 
-
-
-
+  return createGalleryImages(entries);
+}
 
 export async function updateGalleryImageMetadata(
- id:string,
- data:{
-  title:string;
-  category:string
- }
-){
+  id: string,
+  data: {
+    title: string;
+    category: string;
+  }
+) {
+  const images =
+    await getImages();
 
- const images =
- await getImages();
+  const updated =
+    images.map((img) =>
+      img.id === id
+        ? {
+            ...img,
 
+            title: normalizeTitle(
+              data.title
+            ),
 
- const updated =
- images.map(img=>
+            category:
+              normalizeCategory(
+                data.category
+              ),
+          }
+        : img
+    );
 
- img.id===id
- ?
- {
-  ...img,
+  await saveImages(updated);
 
-  title:
-  normalizeTitle(data.title),
-
-  category:
-  normalizeCategory(data.category)
- }
- :
- img
-
- );
-
-
- await saveImages(updated);
-
-
- return updated.find(
-  img=>img.id===id
- );
-
+  return updated.find(
+    (img) => img.id === id
+  );
 }
-
-
-
 
 export async function reorderGalleryImages(
   ids: string[]
 ) {
-
   const images =
     await getImages();
-
 
   const reordered = ids
     .map((id) =>
@@ -317,15 +223,46 @@ export async function reorderGalleryImages(
       )
     )
     .filter(
-      (img): img is GalleryImage =>
+      (
+        img
+      ): img is GalleryImage =>
         Boolean(img)
-    );
-
+    )
+    .map((img, index) => ({
+      ...img,
+      displayOrder: index + 1,
+    }));
 
   await saveImages(
     reordered
   );
 
-
   return reordered;
+}
+
+export async function deleteGalleryImageById(
+  id: string
+) {
+  const images =
+    await getImages();
+
+  const image =
+    images.find(
+      (img) => img.id === id
+    );
+
+  if (!image) {
+    return false;
+  }
+
+  await deleteLocalFile(image.imageUrl);
+
+  const updated =
+    images.filter(
+      (img) => img.id !== id
+    );
+
+  await saveImages(updated);
+
+  return true;
 }

@@ -38,9 +38,25 @@ interface NoticeInput {
   content: string;
 }
 
-const EVENT_COLUMNS =
-  "id,title,date,location,category,description,type,created_at";
-const NOTICE_COLUMNS = "id,title,date,type,content,created_at";
+const EVENT_COLUMNS = `
+id,
+title,
+date,
+location,
+category,
+description,
+type,
+created_at
+`;
+
+const NOTICE_COLUMNS = `
+id,
+title,
+content,
+date,
+type,
+created_at
+`;
 
 function formatSupabaseError(scope: string, message?: string) {
   return new Error(message ? `${scope}: ${message}` : scope);
@@ -71,7 +87,7 @@ function toEventItem(row: EventRow): EventItem {
     category: row.category,
     description: row.description,
     type: row.type,
-    createdAt: row.created_at
+    createdAt: row.created_at,
   };
 }
 
@@ -79,10 +95,10 @@ function toNoticeItem(row: NoticeRow): NoticeItem {
   return {
     id: row.id,
     title: row.title,
+    content: row.content,
     date: row.date,
     type: row.type,
-    content: row.content,
-    createdAt: row.created_at
+    createdAt: row.created_at,
   };
 }
 
@@ -104,10 +120,10 @@ export async function listEvents(): Promise<EventItem[]> {
 export async function listNotices(): Promise<NoticeItem[]> {
   const supabase = getSupabaseAdminClient();
   const { data, error } = await supabase
-    .from("notices")
-    .select(NOTICE_COLUMNS)
-    .order("date", { ascending: false })
-    .order("created_at", { ascending: false });
+  .from("notices")
+  .select(NOTICE_COLUMNS)
+  .order("date", { ascending: false })
+  .order("created_at", { ascending: false });
 
   if (error) {
   console.error("SUPABASE ERROR:", error);

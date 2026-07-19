@@ -78,16 +78,14 @@ function toDocumentItem(row: DocumentRow): DocumentItem {
     id: row.id,
 
     title: row.title,
+
     category: row.category,
+
     description: row.description ?? "",
-
-    fileName: row.file_name,
-
-    filePath: row.file_path,
 
     fileUrl: row.file_url,
 
-    fileSize: row.file_size ?? undefined,
+    downloads: 0,
 
     displayOrder: row.display_order,
 

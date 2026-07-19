@@ -65,7 +65,6 @@ export async function PUT(
       subject: updated.subject,
       bio: updated.description,
       photo: updated.imageUrl,
-      publicId: updated.publicId,
       pdfUrl: updated.pdfUrl,
       pdfTitle: updated.pdfTitle
     };

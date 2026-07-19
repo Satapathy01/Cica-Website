@@ -11,7 +11,7 @@ interface GallerySlideshowProps {
 }
 
 function getGalleryAltText(image: GalleryImage) {
-  const explicitText = (image.title ?? image.alt ?? "").trim();
+  const explicitText = (image.title ?? image.title ?? "").trim();
   if (explicitText.length > 0) {
     return explicitText;
   }
@@ -190,7 +190,7 @@ export function GallerySlideshow({ initialImages }: GallerySlideshowProps) {
               }`}
             >
               <Image
-                src={image.url}
+                src={image.imageUrl}
                 alt={getGalleryAltText(image)}
                 fill
                 priority={index === 0}
@@ -310,7 +310,7 @@ export function GallerySlideshow({ initialImages }: GallerySlideshowProps) {
             onClick={(event) => event.stopPropagation()}
           >
             <Image
-              src={previewImage.url}
+              src={previewImage.imageUrl}
               alt={getGalleryAltText(previewImage)}
               fill
               unoptimized

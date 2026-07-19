@@ -1,26 +1,40 @@
-export type NoticeType = "daily" | "holiday" | "alert";
+export type NoticeType = "general" | "holiday" | "exam" | "admission";
 export type EventType = "event" | "exam";
 
 export interface HeroSlide {
   id: string;
-  url: string;
-  alt: string;
+  title: string;
+  imageUrl: string;
+  altText: string;
+  displayOrder: number;
+  isActive: boolean;
 }
 
 export interface HeroContent {
-  id: string;
-  admissionsText: string;
-  updatedAt: string;
+  id: number;
+  title: string;
+  subtitle: string;
+
+  primaryButtonText: string;
+  primaryButtonLink: string;
+
+  secondaryButtonText: string;
+  secondaryButtonLink: string;
+
+  autoplay: boolean;
+  autoplaySpeed: number;
+  overlayOpacity: number;
+
+  updatedAt?: string;
 }
 
 export interface GalleryImage {
   id: string;
-  url: string;
-  alt: string;
+  title: string;
+  imageUrl: string;
   category: string;
-  title?: string;
-  publicId?: string;
-  sortOrder?: number;
+  displayOrder: number;
+  isActive: boolean;
 }
 
 export type GalleryDisplayMode = "grid" | "slideshow";
@@ -55,7 +69,6 @@ export interface StaffMember {
   subject: string;
   bio: string;
   photo: string;
-  publicId?: string;
   pdfUrl?: string;
   pdfTitle?: string;
 }
@@ -66,15 +79,33 @@ export interface Teacher {
   subject: string;
   description: string;
   imageUrl: string;
-  publicId: string;
   pdfUrl?: string;
   pdfTitle?: string;
 }
 
 export interface ContactSettings {
-  email: string;
-  phone: string;
+  schoolName: string;
   address: string;
+  city: string;
+  state: string;
+  postalCode: string;
+
+  phone: string;
+  alternatePhone?: string;
+
+  email: string;
+  website?: string;
+
+  facebook?: string;
+  instagram?: string;
+  youtube?: string;
+  whatsapp?: string;
+
+  googleMapEmbed?: string;
+  officeHours?: string;
+
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface ContactMessage {
@@ -99,38 +130,37 @@ export type NavConfig = Record<NavSectionKey, boolean>;
 export interface DownloadItem {
   id: string;
   title: string;
-  date: string;
+  description?: string;
+
+  category: string;
+
   fileUrl: string;
-  filePath?: string;
-  publicUrl?: string;
+
+  downloads: number;
+
+  displayOrder: number;
+  isActive: boolean;
+
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface DocumentItem {
   id: string;
 
   title: string;
-
   category: string;
 
   description?: string;
 
-  fileName: string;
-
-  // Internal storage path (used by backend)
-  filePath: string;
-
-  // Public URL (used by frontend)
   fileUrl: string;
 
-  fileSize?: number;
+  downloads: number;
 
   displayOrder: number;
-
   isActive: boolean;
 
   createdAt: string;
-
   updatedAt: string;
 }
 

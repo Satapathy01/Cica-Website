@@ -98,8 +98,8 @@ export function AdminHeroManager({
   const startEditSlide = (slide: HeroSlide) => {
     setEditingId(slide.id);
     setHeroEditForm({
-      url: slide.url,
-      alt: slide.alt
+      url: slide.imageUrl,
+      alt: slide.altText
     });
   };
 
@@ -205,9 +205,9 @@ export function AdminHeroManager({
               key={slide.id}
               className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 shadow-md dark:border-slate-700 dark:bg-slate-900"
             >
-              <p className="break-all text-xs text-slate-500 dark:text-slate-400">{slide.url}</p>
+              <p className="break-all text-xs text-slate-500 dark:text-slate-400">{slide.imageUrl}</p>
               <p className="break-words text-sm font-semibold text-slate-900 dark:text-slate-100">
-                {slide.alt}
+                {slide.altText}
               </p>
 
               <div className="flex flex-wrap gap-2">

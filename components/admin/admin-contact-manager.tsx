@@ -20,9 +20,39 @@ interface AdminContactManagerProps {
 }
 
 const initialSettings: ContactSettings = {
-  email: "",
+  schoolName: "",
+
+  address: "",
+
+  city: "",
+
+  state: "",
+
+  postalCode: "",
+
   phone: "",
-  address: ""
+
+  alternatePhone: "",
+
+  email: "",
+
+  website: "",
+
+  facebook: "",
+
+  instagram: "",
+
+  youtube: "",
+
+  whatsapp: "",
+
+  googleMapEmbed: "",
+
+  officeHours: "",
+
+  latitude: undefined,
+
+  longitude: undefined
 };
 
 export function AdminContactManager({

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Menu, Moon, Sun, X } from "lucide-react";
+import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { navigationLinks } from "@/lib/constants";
@@ -11,14 +12,17 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeLink, setActiveLink] = useState("#home");
+  const [hoveredLink, setHoveredLink] = useState<string | null>(null);
+
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      setScrolled(window.scrollY > 30);
 
       for (const link of navigationLinks) {
         const section = document.querySelector(link.href);
+
         if (!section) continue;
 
         const top = (section as HTMLElement).offsetTop - 120;
@@ -30,92 +34,149 @@ export function Navbar() {
       }
     };
 
+    handleScroll();
+
     window.addEventListener("scroll", handleScroll);
+
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <header
-      className={`fixed left-0 w-full z-50 transition-all duration-300 ${
-        scrolled ? "top-0" : "top-[48px]"
-      } ${
-        scrolled
-          ? "bg-white shadow-md border-b border-slate-200"
-          : "bg-white/80 backdrop-blur-md border-b border-slate-200/50"
-      }`}
-    >
-      <div className="section-shell flex items-center justify-between py-3">
-
-        {/* 🔹 LEFT LOGO */}
-        <Link href="#home" className="flex items-center gap-2">
-          <Logo compact mode="dark" size={32} />
-          <span className="font-semibold text-sm text-slate-900">
-            D.M Public School
-          </span>
-        </Link>
-
-        {/* 🔹 CENTER NAV */}
-        <nav className="hidden md:flex items-center gap-2 bg-white/90 backdrop-blur-md px-4 py-1 rounded-full shadow-lg">
-          {navigationLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                activeLink === link.href
-                  ? "bg-blue-600 text-white"
-                  : "text-slate-700 hover:bg-slate-200"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-
-        {/* 🔹 RIGHT ACTIONS */}
-        <div className="hidden lg:flex items-center gap-3">
-          <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="h-10 w-10 flex items-center justify-center rounded-full border border-slate-200 bg-white hover:bg-slate-100 shadow-sm"
-          >
-            {theme === "dark" ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
-            )}
-          </button>
-
-          <Link
-            href="/admin"
-            className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-700 shadow-sm"
-          >
-            Admin
-          </Link>
-        </div>
-
-        {/* 🔹 MOBILE BUTTON */}
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="lg:hidden h-10 w-10 flex items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm"
+    <>
+     <header className="fixed top-[52px] left-0 z-50 w-full px-4 lg:px-6">
+        <div
+          className={`mx-auto flex h-[60px] max-w-7xl items-center justify-between rounded-full border px-4 transition-all duration-300 ${
+            scrolled
+              ? "border-slate-200 bg-white/95 shadow-2xl backdrop-blur-xl"
+              : "border-white/40 bg-white/80 shadow-xl backdrop-blur-xl"
+          }`}
         >
-          {mobileOpen ? <X /> : <Menu />}
-        </button>
-      </div>
+          {/* Logo */}
+          <Link href="#home" className="flex items-center gap-3">
+            <Logo compact mode="dark" size={36} />
 
-      {/* 🔹 MOBILE MENU */}
-      {mobileOpen && (
-        <div className="lg:hidden bg-white border-t p-4 space-y-2 shadow-md">
-          {navigationLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setMobileOpen(false)}
-              className="block px-3 py-2 rounded-lg hover:bg-slate-100 text-slate-800"
+            <span className="whitespace-nowrap text-xl font-bold tracking-tight text-slate-900">
+              CICA Institute
+            </span>
+          </Link>
+
+          {/* Navigation */}
+          <nav
+            className="hidden lg:flex items-center gap-2 rounded-full bg-slate-100/70 p-1"
+            onMouseLeave={() => setHoveredLink(null)}
+          >
+            {navigationLinks.map((link) => {
+              const active =
+                hoveredLink === link.href ||
+                (!hoveredLink && activeLink === link.href);
+
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onMouseEnter={() => setHoveredLink(link.href)}
+                  className="relative px-4 py-1.5 text-sm font-medium"
+                >
+                  {active && (
+                    <motion.span
+                      layoutId="navbar-pill"
+                      transition={{
+                        type: "spring",
+                        stiffness: 450,
+                        damping: 35,
+                      }}
+                      className="absolute inset-0 rounded-full bg-blue-600"
+                    />
+                  )}
+
+                  <span
+                    className={`relative z-10 transition-colors ${
+                      active ? "text-white" : "text-slate-700"
+                    }`}
+                  >
+                    {link.label}
+                  </span>
+                </Link>
+              );
+            })}
+          </nav>
+                    {/* Right Actions */}
+          <div className="hidden lg:flex items-center gap-3">
+            <button
+              onClick={() =>
+                setTheme(theme === "dark" ? "light" : "dark")
+              }
+              className="flex h-11 w-11 items-center justify-center rounded-full transition hover:bg-slate-100"
             >
-              {link.label}
+              {theme === "dark" ? (
+                <Sun className="h-5 w-5" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
+            </button>
+
+            <Link
+              href="/bms"
+              className="rounded-full border border-blue-600 px-5 py-2 text-sm font-semibold text-blue-600 transition hover:bg-blue-50"
+            >
+              BMS
             </Link>
-          ))}
+
+            <Link
+              href="/admin"
+              className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+            >
+              Admin
+            </Link>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMobileOpen((prev) => !prev)}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm lg:hidden"
+          >
+            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
         </div>
-      )}
-    </header>
+
+        {/* Mobile Menu */}
+        {mobileOpen && (
+          <div className="mx-auto mt-3 max-w-7xl rounded-3xl border border-slate-200 bg-white p-5 shadow-xl lg:hidden">
+            <div className="flex flex-col gap-2">
+              {navigationLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={`rounded-xl px-4 py-3 transition ${
+                    activeLink === link.href
+                      ? "bg-blue-600 text-white"
+                      : "hover:bg-slate-100"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+
+              <Link
+                href="/bms"
+                onClick={() => setMobileOpen(false)}
+                className="mt-3 rounded-xl border border-blue-600 px-4 py-3 text-center font-semibold text-blue-600"
+              >
+                BMS
+              </Link>
+
+              <Link
+                href="/admin"
+                onClick={() => setMobileOpen(false)}
+                className="rounded-xl bg-blue-600 px-4 py-3 text-center font-semibold text-white"
+              >
+                Admin
+              </Link>
+            </div>
+          </div>
+        )}
+      </header>
+    </>
   );
 }
