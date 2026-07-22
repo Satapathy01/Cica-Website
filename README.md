@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # DM Public School Website
 
 Production-ready school website built with **Next.js App Router + Tailwind CSS**.
@@ -149,4 +148,3 @@ Edit `lib/site-config.ts`:
 =======
 # Cica-Website
 Production Ready Institute Website
->>>>>>> 300d13948e8f116bb1658dec5cabb1f5761ecb7e
